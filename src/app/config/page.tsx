@@ -6,6 +6,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import InAppHeader from '@/components/InAppHeader';
+import { calculateDailyImages } from '@/utils';
 
 export type ImgurImage = {
     id: string;
@@ -43,21 +44,6 @@ export default function Config() {
 
     const [offset, setOffset] = useState(0)
     const [isLoadingData, setIsLoadingData] = useState(false)
-
-
-    const calculateDailyImages = (images: ImgurImage[]): number => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const endOfToday = new Date(today);
-        endOfToday.setHours(23, 59, 59, 999);
-
-        return images.filter(image => {
-            const imageDate = new Date(image.datetime);
-            imageDate.setHours(0, 0, 0, 0);
-            return imageDate.getTime() >= today.getTime() && imageDate.getTime() <= endOfToday.getTime();
-        })?.length || 0;
-    }
 
     const fetchImgs = async () => {
         setIsLoadingData(true)
@@ -120,7 +106,7 @@ export default function Config() {
                         <h4>Relatório</h4>
                         <p>Total de imagens do dia: {dailyImagesCount}</p>
                     </div>
-                    <ul style={{ height: 'auto', maxHeight: '50vh', overflowY: 'auto', width: '100%', maxWidth: '500px', listStyle: 'none', padding: 0 }}>
+                    <ul className={styles.configList}>
                         {imgList && imgList.length > 0 ? imgList.slice(offset, offset + pageSize).map(img => {
                             const date = new Date(img.datetime)
                             return (

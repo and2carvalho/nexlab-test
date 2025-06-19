@@ -135,6 +135,16 @@
   color: #000;
 }
 
+.configList {
+  height: auto;
+  max-height: 50vh;
+  overflow-Y: auto;
+  width: 100%;
+  max-width: 500px;
+  list-style: none;
+  padding: 0;
+}
+
 .paginationControls {
   display: flex;
   gap: 15px;

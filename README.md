@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Photo Opp - NexLab
+
+Este projeto é uma aplicação "Photo Opp" desenvolvida para teste de admissão na empresa NexLab.
+A aplicação permite a captura de fotos e a geração de QR codes para download das imagens. 
+
+Ela integra-se com a API do Imgur para armazenamento e gerenciamento das imagens.
+
+## Visão Geral das Telas
+
+O aplicativo possui as seguintes telas principais:
+
+1.  **Tela Inicial (`/`)**: Botão "Iniciar" para começar a sessão de fotos.
+2.  **Tela de Captura (`/checkin`)**:
+    * Exibe a câmera para captura de fotos.
+    * Possui uma contagem regressiva antes da foto.
+    * Permite a visualização da foto capturada com opções para "Refazer" ou "Continuar".
+    * Após confirmar, a imagem é enviada para o Imgur e um QR Code é gerado para download da imagem.
+3.  **Tela de Finalização (`/checkout`)**: Exibe uma mensagem de agradecimento e o QR Code gerado para o download da imagem final.
+4.  **Tela de Configuração (`/config`)**: Apresenta um relatório das imagens enviadas e permite a navegação entre elas.
+
+## Como Acessar o Relatório (Configuração)
+
+Para acessar a tela de **Relatório/Configuração**, basta **clicar no logo da NexLab** que aparece no centro superior da **tela inicial**.
+
+## Configuração do Ambiente
+
+Para que o projeto funcione corretamente, você precisará criar um arquivo de variáveis de ambiente (`.env`) na raiz do projeto.
+
+### Variáveis de Ambiente Necessárias
+
+Crie um arquivo chamado `.env` na raiz do seu projeto e adicione as seguintes variáveis:
+
+```bash
+# Seu token de acesso à API do Imgur
+# Você pode obter um token seguindo as instruções da documentação do Imgur API para OAuth 2.0 (Client-side usage)
+IMGUR_ACCESS_TOKEN=SEU_ACCESS_TOKEN_AQUI
+
+# O ID do álbum do Imgur onde as imagens serão armazenadas
+# As imagens podem ser enviadas para um álbum específico.
+IMGUR_DEFAULT_ALBUM_ID=SEU_ALBUM_ID_AQUI
+```
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
 # or
+yarn install
 yarn dev
 # or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:3000](http://localhost:3000).
