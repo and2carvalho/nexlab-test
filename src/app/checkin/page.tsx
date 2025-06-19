@@ -144,11 +144,11 @@ export default function Checkin() {
                             isLoading={isLoadingCheckout}
                             imgQrCode={generatedQrCode}
                         />
-                        <Modal
+                        {/* <Modal
                             visible={isModalOpen}
                             title="Obrigado!"
                             description="Lorem ipsum dolor sit amet consectetur"
-                        />
+                        /> */}
                     </div>
                 )}
             </main>
