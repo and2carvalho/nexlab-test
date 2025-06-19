@@ -16,11 +16,12 @@ const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture }, ref) => {
     const photoRef = useRef<HTMLCanvasElement>(null);
     const [hasPermission, setHasPermission] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
+    const [videoPlaying, setVideoPlaying] = useState(false);
     const mediaStreamRef = useRef<MediaStream | null>(null);
 
     const stopCamera = useCallback(() => {
         if (mediaStreamRef.current) {
+            console.log("Parando tracks do MediaStream...");
             mediaStreamRef.current.getTracks().forEach(track => {
                 track.stop();
             });
@@ -28,30 +29,36 @@ const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture }, ref) => {
         }
         if (videoRef.current) {
             videoRef.current.srcObject = null;
+            console.log("srcObject do vídeo limpo.");
         }
+        setVideoPlaying(false);
     }, []);
 
     const startCamera = useCallback(async () => {
         setError(null);
-        if (mediaStreamRef.current) {
+        setVideoPlaying(false);
+
+        if (mediaStreamRef.current && videoRef.current && (videoRef.current.srcObject === mediaStreamRef.current)) {
             const tracks = mediaStreamRef.current.getTracks();
             if (tracks.length > 0 && tracks[0].readyState === 'live') {
-                console.log("Câmera já está ativa e o stream está ao vivo.");
-                if (videoRef.current && videoRef.current.srcObject === mediaStreamRef.current) {
-                    console.log("VideoRef já está conectado e reproduzindo.");
-                    return; // Já está rodando e visível
-                }
-            } else {
-                console.warn("Stream anterior não está ativo ou não conectado, tentando reiniciar.");
-                stopCamera();
+                console.log("Câmera já está ativa e o stream está ao vivo, e conectado ao vídeo.");
+                setVideoPlaying(true);
+                return;
             }
         }
+
+        // Parar qualquer stream anterior que não esteja funcionando corretamente
+        if (mediaStreamRef.current) {
+            console.warn("Stream anterior detectado, mas não ativo/conectado corretamente. Parando para reiniciar.");
+            stopCamera();
+        }
+
         try {
             console.log("Tentando acessar a câmera com getUserMedia...");
-            const constraints = {
+            const constraints: MediaStreamConstraints = {
                 video: {
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 },
+                    width: { ideal: 1280, min: 640 },
+                    height: { ideal: 720, min: 480 },
                     facingMode: "user"
                 },
                 audio: false
@@ -63,24 +70,29 @@ const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture }, ref) => {
 
             if (videoRef.current) {
                 videoRef.current.srcObject = mediaStream;
+
                 videoRef.current.onloadedmetadata = () => {
                     console.log("Metadados do vídeo carregados. Dimensões:", videoRef.current?.videoWidth, videoRef.current?.videoHeight);
-                    videoRef.current?.play().catch(playErr => {
-                        if (playErr.name === "AbortError") {
-                            console.warn("Reprodução do vídeo interrompida. Isso pode acontecer ao recarregar rapidamente.");
-                        } else if (playErr.name === "NotAllowedError") {
-                            setError('Reprodução automática bloqueada. Clique para iniciar o vídeo.');
-                            console.error("Erro ao reproduzir vídeo: ", playErr);
-                        }
-                        else {
-                            console.error("Erro ao reproduzir vídeo:", playErr);
-                        }
-                    });
+                    videoRef.current?.play()
+                        .then(() => {
+                            console.log("Vídeo da câmera está reproduzindo.");
+                            setVideoPlaying(true);
+                        })
+                        .catch(playErr => {
+                            console.error("Erro ao iniciar a reprodução automática do vídeo:", playErr);
+                            setVideoPlaying(false);
+                            if (playErr instanceof DOMException && playErr.name === "NotAllowedError") {
+                                setError('Reprodução automática bloqueada. Por favor, clique no botão "Iniciar Vídeo" para continuar.');
+                            } else {
+                                setError(`Não foi possível iniciar a reprodução do vídeo: ${playErr.message || playErr.name || 'Erro desconhecido'}.`);
+                            }
+                        });
                 };
-                console.log("srcObject atribuído ao vídeo.");
             }
         } catch (err) {
-            console.error("Erro ao acessar a câmera:", err);
+            console.error("Erro ao acessar a câmera (getUserMedia):", err);
+            setHasPermission(false);
+            setVideoPlaying(false);
             if (err instanceof DOMException) {
                 if (err.name === 'NotAllowedError') {
                     setError('Permissão da câmera negada. Por favor, permita o acesso à câmera nas configurações do seu navegador.');
@@ -88,18 +100,18 @@ const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture }, ref) => {
                     setError('Nenhuma câmera encontrada no dispositivo.');
                 } else if (err.name === 'NotReadableError') {
                     setError('A câmera está sendo usada por outra aplicação ou o hardware não está disponível.');
-                } else if (err.name === 'OverconstrainedError') {
-                    setError(`As configurações da câmera solicitadas não puderam ser atendidas: ${err.message}.`);
+                } else if (err.name === 'SecurityError') {
+                    setError('Acesso à câmera bloqueado por questões de segurança (verifique HTTPS).');
                 }
                 else {
-                    setError(`Erro desconhecido ao acessar a câmera: ${err.message}`);
+                    setError(`Erro desconhecido ao acessar a câmera: ${err.message}.`);
                 }
             } else {
-                setError('Não foi possível acessar a câmera.');
+                setError('Não foi possível acessar a câmera. Verifique o console para mais detalhes.');
             }
-            setHasPermission(false);
         }
     }, [stopCamera]);
+
     useEffect(() => {
         startCamera();
         return () => {
@@ -107,8 +119,9 @@ const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture }, ref) => {
         };
     }, [startCamera, stopCamera]);
 
+
     const takePhoto = useCallback(() => {
-        if (videoRef.current && photoRef.current) {
+        if (videoRef.current && photoRef.current && videoPlaying) {
             const context = photoRef.current.getContext('2d');
             if (context) {
                 photoRef.current.width = videoRef.current.videoWidth;
@@ -119,8 +132,12 @@ const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture }, ref) => {
                 const imageDataUrl = photoRef.current.toDataURL('image/png');
                 onCapture(imageDataUrl);
             }
+        } else {
+            console.warn("Não é possível tirar foto: Câmera não está ativa ou reproduzindo.");
+
+            setError("Câmera não está pronta para tirar foto. Tente iniciar o vídeo.");
         }
-    }, [onCapture]);
+    }, [onCapture, videoPlaying]);
 
 
     useImperativeHandle(ref, () => ({
@@ -132,19 +149,55 @@ const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture }, ref) => {
             {error && <p style={{ color: 'red', marginBottom: '20px' }}>{error}</p>}
             {!hasPermission && !error && <p>Aguardando permissão da câmera...</p>}
 
+            {/* Frame da câmera e botão de play manual */}
             {hasPermission && (
                 <div className={styles.cameraFrame}>
                     <video
                         ref={videoRef}
                         autoPlay
                         playsInline
+                        muted // Adicione muted. Muitos navegadores exigem para autoplay.
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                     <canvas
                         ref={photoRef}
                         style={{ display: 'none' }}
                     />
-                    
+
+                    {!videoPlaying && !error && (
+                        <button
+                            onClick={async () => {
+                                try {
+                                    if (videoRef.current && videoRef.current.srcObject) {
+                                        await videoRef.current.play();
+                                        setVideoPlaying(true);
+                                        console.log("Reprodução manual iniciada.");
+                                    } else {
+                                        console.warn("Não foi possível iniciar manual: srcObject não pronto.");
+                                        setError("Vídeo não está pronto para reprodução. Tente novamente.");
+                                    }
+                                } catch (e) {
+                                    console.error("Falha na reprodução manual:", e);
+                                    setError("Erro ao iniciar o vídeo manualmente. Tente recarregar a página.");
+                                }
+                            }}
+                            style={{
+                                position: 'absolute',
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)',
+                                zIndex: 100,
+                                padding: '10px 20px',
+                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            Clique para Iniciar Vídeo
+                        </button>
+                    )}
                 </div>
             )}
 
