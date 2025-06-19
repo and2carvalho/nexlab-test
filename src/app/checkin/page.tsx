@@ -19,11 +19,14 @@ export default function Checkin() {
     const cameraRef = useRef<CameraRef>(null);
 
     const [loadingCamera, setLoadingCamera] = useState(true);
-    const [showCountDown, setShowCountDown] = useState(false);
-    const [imageData, setImageData] = useState<string | null>(null);
-    const [showImageTaken, setShowImageTaken] = useState(false);
-    const [countDown, setCountDown] = useState(3);
+    const [isLoadingCheckout, setIsLoadingCheckout] = useState(false);
+    
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showImageTaken, setShowImageTaken] = useState(false);
+    const [showCountDown, setShowCountDown] = useState(false);
+
+    const [imageData, setImageData] = useState<string | null>(null);
+    const [countDown, setCountDown] = useState(3);
 
     const initializeApp = useCallback(() => {
         setImageData(null);
@@ -144,20 +147,23 @@ export default function Checkin() {
                         }}
                         onFinish={async () => {
                             setIsModalOpen(true);
+                            setIsLoadingCheckout(true)
                             await new Promise(resolve => setTimeout(resolve, 5000));
+                            setIsLoadingCheckout(false)
                             setIsModalOpen(false);
                             router.push('/checkout');
                         }}
+                        isLoading={isLoadingCheckout}
                         imgQrCode={generatedQrCode}
+                    />
+                    <Modal
+                        visible={isModalOpen}
+                        title="Obrigado!"
+                        description="Loren ipso loren ipsum loren ipso loren ispsu"
                     />
                 </div>
             )}
 
-            <Modal
-                visible={isModalOpen}
-                title="Obrigado"
-                description="Loren ipso loren ipsum"
-            />
         </div>
     );
 }

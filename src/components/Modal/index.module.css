@@ -1,7 +1,7 @@
 .modalContainer {
     position: absolute;
     top: 35%;
-    left: 23%;
+    left: 20%;
     background-color: #f9f9f9;
     padding: 40px;
     border-radius: 10px;
@@ -9,5 +9,16 @@
 }
 
 .modalContent {
-    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 180px;
+}
+
+.modalContent p {
+    font-weight: 600;
+    margin-top: 1rem;
+    color: rgba(var(--gray-rgb), 0.6);
+    font-size: 18px;
 }

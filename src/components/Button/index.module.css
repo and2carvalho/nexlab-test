@@ -16,6 +16,11 @@
     transition: background-color 0.3s ease;
 }
 
+.button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .smallButton { 
     width: fit-content;
     padding: 10px 20px;

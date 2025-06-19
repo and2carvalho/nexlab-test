@@ -6,6 +6,7 @@ interface MainButtonProps {
     variant?: "default" | "gosht";
     linkHref?: string;
     small?: boolean;
+    disabled?: boolean;
     onClick?: () => void;
 }
 
@@ -14,12 +15,14 @@ export default function MainButton({
     linkHref,
     small,
     onClick,
+    disabled,
     variant = "default",
 }: MainButtonProps) {
     return (
         <div className={styles.buttonContainer}>
             <Link href={linkHref || "#"} passHref>
                 <button
+                    disabled={disabled}
                     className={
                         `${small
                             ? styles.smallButton

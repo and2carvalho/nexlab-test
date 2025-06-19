@@ -10,6 +10,7 @@ interface CardProps {
     onConfirm: () => Promise<void>;
     onFinish: () => void;
     imgQrCode?: string | null;
+    isLoading?: boolean;
 }
 
 export default function Card({
@@ -17,7 +18,8 @@ export default function Card({
     imgQrCode,
     onCancel,
     onConfirm,
-    onFinish
+    onFinish,
+    isLoading,
 }: CardProps) {
     return (
         <div
@@ -51,8 +53,8 @@ export default function Card({
                     <div
                         style={{
                             position: 'fixed',
-                            top: `60%`,
-                            right: `7%`,
+                            top: `59%`,
+                            right: `8%`,
                             borderRadius: 10,
                             padding: 10,
                             backgroundColor: 'rgb(var(--gray-rgb))',
@@ -95,8 +97,8 @@ export default function Card({
                     </>
                 ) : <MainButton
                     label="Finalizar"
-                    linkHref="/checkout"
                     onClick={onFinish}
+                    disabled={isLoading}
                 />}
             </div>
         </div>

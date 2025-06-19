@@ -6,7 +6,7 @@ import { useAppContext } from '@/context'
 import Image from 'next/image'
 
 export default function Checkout() {
-    const { generatedQrCode } = useAppContext()
+    const { generatedQrCode, setGeneratedQrCode } = useAppContext()
     return (
         <div className={styles.page}>
             <Image
@@ -47,7 +47,7 @@ export default function Checkout() {
                             border: '3px solid rgb(var(--gray-rgb))',
                         }}>
                             <Image
-                                src={generatedQrCode as string}
+                                src={generatedQrCode || ""}
                                 height={180}
                                 width={180}
                                 alt='img-qr-code'
@@ -59,6 +59,9 @@ export default function Checkout() {
                 <MainButton
                     label="Finalizar"
                     linkHref="/"
+                    onClick={() => setTimeout(() => setGeneratedQrCode(null), 800)
+                        
+                    }
                 />
 
             </main>

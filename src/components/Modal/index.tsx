@@ -12,7 +12,6 @@ export default function Modal({ visible, title, description }: ModalProps) {
     
     return (
         <div
-            id="modal-main"
             className={styles.modalContainer}
             role="dialog"
             aria-modal="true"
