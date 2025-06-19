@@ -7,7 +7,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import Camera, { CameraRef } from "@/components/Camera";
 import Card from "@/components/Card";
 import { useAppContext } from "@/context";
-import Modal from "@/components/Modal";
+// import Modal from "@/components/Modal";
 import { useRouter } from "next/navigation";
 import InAppHeader from "@/components/InAppHeader";
 
@@ -39,6 +39,7 @@ export default function Checkin() {
 
     useEffect(() => {
         initializeApp();
+        console.log(isModalOpen)
     }, [initializeApp]);
 
     useEffect(() => {
