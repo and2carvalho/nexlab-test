@@ -34,32 +34,50 @@ const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture }, ref) => {
     const startCamera = useCallback(async () => {
         setError(null);
         if (mediaStreamRef.current) {
-            console.log("Câmera já está ativa.");
-            // Verificar se o stream ainda está ativo e a câmera visível
             const tracks = mediaStreamRef.current.getTracks();
-            if (tracks.length > 0 && videoRef.current && videoRef.current.srcObject) {
-                // Já está rodando e visível
-                return;
+            if (tracks.length > 0 && tracks[0].readyState === 'live') {
+                console.log("Câmera já está ativa e o stream está ao vivo.");
+                if (videoRef.current && videoRef.current.srcObject === mediaStreamRef.current) {
+                    console.log("VideoRef já está conectado e reproduzindo.");
+                    return; // Já está rodando e visível
+                }
             } else {
+                console.warn("Stream anterior não está ativo ou não conectado, tentando reiniciar.");
                 stopCamera();
             }
         }
         try {
-            console.log("Tentando acessar a câmera...");
-            const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            console.log("Tentando acessar a câmera com getUserMedia...");
+            const constraints = {
+                video: {
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    facingMode: "user"
+                },
+                audio: false
+            };
+            const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
             mediaStreamRef.current = mediaStream;
             setHasPermission(true);
+            console.log("Permissão da câmera concedida e stream obtido.");
 
             if (videoRef.current) {
                 videoRef.current.srcObject = mediaStream;
-                await videoRef.current.play().catch(playErr => {
-                    if (playErr.name === "AbortError") {
-                        console.warn("Reprodução do vídeo interrompida. Isso pode acontecer ao recarregar rapidamente.");
-                    } else {
-                        console.error("Erro ao reproduzir vídeo:", playErr);
-                    }
-                });
-                console.log("Câmera iniciada e reproduzindo.");
+                videoRef.current.onloadedmetadata = () => {
+                    console.log("Metadados do vídeo carregados. Dimensões:", videoRef.current?.videoWidth, videoRef.current?.videoHeight);
+                    videoRef.current?.play().catch(playErr => {
+                        if (playErr.name === "AbortError") {
+                            console.warn("Reprodução do vídeo interrompida. Isso pode acontecer ao recarregar rapidamente.");
+                        } else if (playErr.name === "NotAllowedError") {
+                            setError('Reprodução automática bloqueada. Clique para iniciar o vídeo.');
+                            console.error("Erro ao reproduzir vídeo: ", playErr);
+                        }
+                        else {
+                            console.error("Erro ao reproduzir vídeo:", playErr);
+                        }
+                    });
+                };
+                console.log("srcObject atribuído ao vídeo.");
             }
         } catch (err) {
             console.error("Erro ao acessar a câmera:", err);
@@ -69,7 +87,9 @@ const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture }, ref) => {
                 } else if (err.name === 'NotFoundError') {
                     setError('Nenhuma câmera encontrada no dispositivo.');
                 } else if (err.name === 'NotReadableError') {
-                    setError('A câmera está sendo usada por outra aplicação. Por favor, feche-a e tente novamente.');
+                    setError('A câmera está sendo usada por outra aplicação ou o hardware não está disponível.');
+                } else if (err.name === 'OverconstrainedError') {
+                    setError(`As configurações da câmera solicitadas não puderam ser atendidas: ${err.message}.`);
                 }
                 else {
                     setError(`Erro desconhecido ao acessar a câmera: ${err.message}`);
@@ -80,7 +100,6 @@ const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture }, ref) => {
             setHasPermission(false);
         }
     }, [stopCamera]);
-
     useEffect(() => {
         startCamera();
         return () => {
@@ -125,6 +144,7 @@ const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture }, ref) => {
                         ref={photoRef}
                         style={{ display: 'none' }}
                     />
+                    
                 </div>
             )}
 
