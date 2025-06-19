@@ -5,12 +5,33 @@ import MainButton from '@/components/Button'
 import InAppHeader from '@/components/InAppHeader';
 import { useAppContext } from '@/context'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 
 export default function Checkout() {
+
+    const router = useRouter()
     const { generatedQrCode, setGeneratedQrCode } = useAppContext()
+    const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
+
+    // volta para tela inicial automaticamente apos 8 seg
+    // caso o usuário não retorne
+    useEffect(() => {
+        timeoutIdRef.current = setTimeout(() => {
+            setGeneratedQrCode(null)
+            router.push("/")
+        }, 8000)
+
+        return () => {
+            if (timeoutIdRef.current) {
+                clearTimeout(timeoutIdRef.current)
+            }
+        }
+    }, [])
+
     return (
         <div className={styles.page}>
-            
+
             <InAppHeader />
 
             <main

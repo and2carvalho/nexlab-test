@@ -55,7 +55,6 @@ export default function Card({
                     width={640}
                     height={480}
                     alt="Imagem capturada"
-                    style={{ objectFit: 'contain' }}
                 />
             </div>
 
