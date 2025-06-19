@@ -7,7 +7,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import Camera, { CameraRef } from "@/components/Camera";
 import Card from "@/components/Card";
 import { useAppContext } from "@/context";
-// import Modal from "@/components/Modal";
+import Modal from "@/components/Modal";
 import { useRouter } from "next/navigation";
 import InAppHeader from "@/components/InAppHeader";
 
@@ -39,7 +39,6 @@ export default function Checkin() {
 
     useEffect(() => {
         initializeApp();
-        console.log(isModalOpen)
     }, [initializeApp]);
 
     useEffect(() => {
@@ -145,11 +144,11 @@ export default function Checkin() {
                             isLoading={isLoadingCheckout}
                             imgQrCode={generatedQrCode}
                         />
-                        {/* <Modal
+                        <Modal
                             visible={isModalOpen}
                             title="Obrigado!"
                             description="Lorem ipsum dolor sit amet consectetur"
-                        /> */}
+                        />
                     </div>
                 )}
             </main>
