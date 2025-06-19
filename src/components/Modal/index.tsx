@@ -7,9 +7,9 @@ interface ModalProps {
 }
 
 export default function Modal({ visible, title, description }: ModalProps) {
-    
+
     if (!visible) return null
-    
+
     return (
         <div
             className={styles.modalContainer}

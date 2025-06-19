@@ -18,21 +18,29 @@ export default function MainButton({
     disabled,
     variant = "default",
 }: MainButtonProps) {
+    const ButtonContent = (
+        <button
+            disabled={disabled}
+            className={
+                `${small
+                    ? styles.smallButton
+                    : styles.button} ${variant === "gosht"
+                        ? styles.goshtButton
+                        : styles.mainButton}`
+            }
+            onClick={onClick}
+        >{label}</button>
+    );
+
     return (
         <div className={styles.buttonContainer}>
-            <Link href={linkHref || "#"} passHref>
-                <button
-                    disabled={disabled}
-                    className={
-                        `${small
-                            ? styles.smallButton
-                            : styles.button} ${variant === "gosht"
-                                ? styles.goshtButton
-                                : styles.mainButton}`
-                    }
-                    onClick={onClick}
-                >{label}</button>
-            </Link>
+            {linkHref ? (
+                <Link href={linkHref} passHref>
+                    {ButtonContent}
+                </Link>
+            ) : (
+                ButtonContent
+            )}
         </div>
     )
 }

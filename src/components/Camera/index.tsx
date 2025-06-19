@@ -1,4 +1,3 @@
-// components/Camera/index.tsx
 'use client';
 
 import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
@@ -6,15 +5,13 @@ import styles from "./index.module.css";
 
 interface CameraProps {
     onCapture: (imageDataUrl: string) => void;
-    width?: number;
-    height?: number;
 }
 
 export interface CameraRef {
     takePhoto: () => void;
 }
 
-const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture, width = 640, height = 480 }, ref) => {
+const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture }, ref) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const photoRef = useRef<HTMLCanvasElement>(null);
     const [hasPermission, setHasPermission] = useState(false);
@@ -22,11 +19,30 @@ const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture, width = 640, hei
 
     const mediaStreamRef = useRef<MediaStream | null>(null);
 
+    const stopCamera = useCallback(() => {
+        if (mediaStreamRef.current) {
+            mediaStreamRef.current.getTracks().forEach(track => {
+                track.stop();
+            });
+            mediaStreamRef.current = null;
+        }
+        if (videoRef.current) {
+            videoRef.current.srcObject = null;
+        }
+    }, []);
+
     const startCamera = useCallback(async () => {
         setError(null);
         if (mediaStreamRef.current) {
             console.log("Câmera já está ativa.");
-            return;
+            // Verificar se o stream ainda está ativo e a câmera visível
+            const tracks = mediaStreamRef.current.getTracks();
+            if (tracks.length > 0 && videoRef.current && videoRef.current.srcObject) {
+                // Já está rodando e visível
+                return;
+            } else {
+                stopCamera();
+            }
         }
         try {
             console.log("Tentando acessar a câmera...");
@@ -52,7 +68,10 @@ const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture, width = 640, hei
                     setError('Permissão da câmera negada. Por favor, permita o acesso à câmera nas configurações do seu navegador.');
                 } else if (err.name === 'NotFoundError') {
                     setError('Nenhuma câmera encontrada no dispositivo.');
-                } else {
+                } else if (err.name === 'NotReadableError') {
+                    setError('A câmera está sendo usada por outra aplicação. Por favor, feche-a e tente novamente.');
+                }
+                else {
                     setError(`Erro desconhecido ao acessar a câmera: ${err.message}`);
                 }
             } else {
@@ -60,16 +79,7 @@ const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture, width = 640, hei
             }
             setHasPermission(false);
         }
-    }, []);
-
-    const stopCamera = useCallback(() => {
-        if (mediaStreamRef.current) {
-            mediaStreamRef.current.getTracks().forEach(track => {
-                track.stop();
-            });
-            mediaStreamRef.current = null;
-        }
-    }, []);
+    }, [stopCamera]);
 
     useEffect(() => {
         startCamera();
@@ -82,8 +92,8 @@ const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture, width = 640, hei
         if (videoRef.current && photoRef.current) {
             const context = photoRef.current.getContext('2d');
             if (context) {
-                photoRef.current.width = videoRef.current.videoWidth || width;
-                photoRef.current.height = videoRef.current.videoHeight || height;
+                photoRef.current.width = videoRef.current.videoWidth;
+                photoRef.current.height = videoRef.current.videoHeight;
 
                 context.drawImage(videoRef.current, 0, 0, photoRef.current.width, photoRef.current.height);
 
@@ -91,7 +101,7 @@ const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture, width = 640, hei
                 onCapture(imageDataUrl);
             }
         }
-    }, [onCapture, width, height]);
+    }, [onCapture]);
 
 
     useImperativeHandle(ref, () => ({
@@ -99,21 +109,17 @@ const Camera = forwardRef<CameraRef, CameraProps>(({ onCapture, width = 640, hei
     }));
 
     return (
-        <div style={{ textAlign: 'center', padding: '20px' }}>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
+        <div className={styles.cameraWrapper}>
+            {error && <p style={{ color: 'red', marginBottom: '20px' }}>{error}</p>}
             {!hasPermission && !error && <p>Aguardando permissão da câmera...</p>}
 
             {hasPermission && (
-                <div
-                    className={styles.cameraFrame}
-                    style={{ height: `100vh` }}
-                >
+                <div className={styles.cameraFrame}>
                     <video
                         ref={videoRef}
-                        width={width}
-                        height={height}
                         autoPlay
                         playsInline
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                     <canvas
                         ref={photoRef}

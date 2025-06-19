@@ -36,7 +36,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
           style={{
             width: `28px`,
             height: `28px`,
-            backgroundColor: "#fff",
+            backgroundColor: "var(--gray-main)",
           }}
         />
       </div>

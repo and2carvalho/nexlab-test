@@ -5,6 +5,7 @@ import MainButton from '@/components/Button';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import InAppHeader from '@/components/InAppHeader';
 
 export type ImgurImage = {
     id: string;
@@ -65,7 +66,6 @@ export default function Config() {
             const imgList = await fetch("/api/listImages")
             if (imgList.ok) {
                 const imgs = await imgList.json()
-                // como a response da api é em segundos ajusta para milisegundos
                 const result = imgs.data.map((el: ImgurImage) => ({
                     ...el,
                     datetime: el.datetime * 1000
@@ -96,45 +96,56 @@ export default function Config() {
     };
 
     if (isLoadingData) {
-        return <LoadingSpinner />
+        return (
+            <div className={styles.page}>
+                <LoadingSpinner />
+            </div>
+        )
     }
     return (
-        <div className={styles.pages}>
-            <div className={styles.container}>
-                <h1>Configuração</h1>
-                <div style={{
-                    marginBlock: 40,
-                    padding: 20,
-                    border: '1px solid var(--gray-main)',
-                    borderRadius: 10,
-                    textAlign: 'center'
-                }}>
-                    <h4>Relatório</h4>
-                    <p>Total de imagens do dia: {dailyImagesCount}</p>
+        <div className={styles.page}>
+            
+            <InAppHeader />
+            
+            <main className={styles.main}>
+                <div className={styles.container}>
+                    <h1>Configuração</h1>
+                    <div style={{
+                        marginBlock: 40,
+                        padding: 20,
+                        border: '1px solid var(--gray-main)',
+                        borderRadius: 10,
+                        textAlign: 'center'
+                    }}>
+                        <h4>Relatório</h4>
+                        <p>Total de imagens do dia: {dailyImagesCount}</p>
+                    </div>
+                    <ul style={{ height: 'auto', maxHeight: '50vh', overflowY: 'auto', width: '100%', maxWidth: '500px', listStyle: 'none', padding: 0 }}>
+                        {imgList && imgList.length > 0 ? imgList.slice(offset, offset + pageSize).map(img => {
+                            const date = new Date(img.datetime)
+                            return (
+                                <li key={img.id} style={{ marginBottom: 10, paddingBottom: 10, borderBottom: '1px dashed var(--gray-main)' }}>
+                                    <Link style={{ color: 'blueviolet', wordBreak: 'break-all' }} target='_blank' href={img.link}>{img.link}</Link>
+                                    <p>Data do registro: {date.toLocaleString('pt-BR')}</p>
+                                </li>
+                            )
+                        }) : <p>Nenhuma imagem encontrada.</p>}
+                    </ul>
+                    <div className={styles.paginationControls}>
+                        <button onClick={handlePrevPage} disabled={currentPage === 1}>
+                            Anterior
+                        </button>
+                        <span>Página {currentPage} de {totalPages || 1}</span>
+                        <button onClick={handleNextPage} disabled={currentPage === totalPages || imgList.length === 0}>
+                            Próximo
+                        </button>
+                    </div>
                 </div>
-                <ul style={{ height: '50vh' }}>
-                    {imgList && imgList.length > 0 && imgList.slice(offset, offset + pageSize).map(img => {
-                        // o retorno da api do datetime é em segundos
-                        const date = new Date(img.datetime)
-                        return (
-                            <li key={img.id}>
-                                <Link style={{ color: 'blueviolet' }} target='_blank' href={img.link}>{img.link}</Link>
-                                <p>Data do registro: {date.toLocaleString()}</p>
-                            </li>
-                        )
-                    })}
-                </ul>
-                <div className={styles.paginationControls} style={{ marginTop: 20, display: 'flex', gap: 10 }}>
-                    <button onClick={handlePrevPage} disabled={currentPage === 1}>
-                        Anterior
-                    </button>
-                    <span>Página {currentPage}</span>
-                    <button onClick={handleNextPage} disabled={currentPage === totalPages}>
-                        Próximo
-                    </button>
-                </div>
+            </main>
+
+            <div className={styles.inAppFooter}>
+                <MainButton label='Voltar' linkHref='/' />
             </div>
-            <MainButton label='Voltar' linkHref='/' />
         </div>
     )
 }

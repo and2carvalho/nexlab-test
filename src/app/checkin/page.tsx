@@ -9,10 +9,9 @@ import Card from "@/components/Card";
 import { useAppContext } from "@/context";
 import Modal from "@/components/Modal";
 import { useRouter } from "next/navigation";
-
+import InAppHeader from "@/components/InAppHeader";
 
 export default function Checkin() {
-
     const router = useRouter();
     const { generatedQrCode, setGeneratedQrCode } = useAppContext();
 
@@ -20,7 +19,7 @@ export default function Checkin() {
 
     const [loadingCamera, setLoadingCamera] = useState(true);
     const [isLoadingCheckout, setIsLoadingCheckout] = useState(false);
-    
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [showImageTaken, setShowImageTaken] = useState(false);
     const [showCountDown, setShowCountDown] = useState(false);
@@ -72,7 +71,6 @@ export default function Checkin() {
     }, [showCountDown]);
 
     const handleCapturedImage = useCallback((imageDataUrl: string) => {
-        console.log('Imagem capturada:', imageDataUrl);
         setImageData(imageDataUrl);
         setShowImageTaken(true);
 
@@ -87,83 +85,84 @@ export default function Checkin() {
 
     if (loadingCamera) {
         return (
-            <div className={styles.container} style={{ height: '100vh' }}>
+            <div className={styles.page}>
                 <LoadingSpinner />
             </div>
         )
     }
 
     return (
-        <div className={styles.container} style={{ height: '100vh' }}>
-            {!loadingCamera && (
+        <div className={styles.page}>
 
-                <div>
-                    <Camera ref={cameraRef} onCapture={handleCapturedImage} />
+            <InAppHeader />
 
-                    {/* Contagem Regressiva */}
-                    {showCountDown && (
-                        <div className={styles.overlay}>
-                            <p className={styles.countdownText}>{countDown}</p>
-                        </div>
-                    )}
+            <main className={styles.main}>
 
-                    {/* Botão para iniciar a captura */}
-                    {!showCountDown && !showImageTaken && (
-                        <div className={cameraStyles.cameraControls}>
-                            <button
-                                onClick={handleStartCaptureProcess}
-                                className={cameraStyles.cameraButton}
-                            />
-                        </div>
-                    )}
-                </div>
-            )}
-            {showImageTaken && imageData && (
-                <div className={styles.overlay}>
-                    <Card
-                        imageData={imageData}
-                        onCancel={() => initializeApp()}
-                        onConfirm={async () => {
-                            setLoadingCamera(true);
-                            try {
-                                const sendImg = await fetch('/api/upload', {
-                                    method: 'POST',
-                                    body: JSON.stringify({ imageData }),
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                    },
-                                });
-                                if (!sendImg.ok) {
-                                    console.log("erro ao enviar a imagem. Status:", sendImg.status);
-                                    throw new Error("Erro ao enviar a imagem");
+                {!showImageTaken && <Camera ref={cameraRef} onCapture={handleCapturedImage} />}
+
+                {showCountDown && (
+                    <div className={styles.overlay}>
+                        <p className={styles.countdownText}>{countDown}</p>
+                    </div>
+                )}
+
+                {showImageTaken && imageData && (
+                    <div className={styles.overlay}>
+                        <Card
+                            imageData={imageData}
+                            onCancel={() => initializeApp()}
+                            onConfirm={async () => {
+                                setLoadingCamera(true);
+                                try {
+                                    const sendImg = await fetch('/api/upload', {
+                                        method: 'POST',
+                                        body: JSON.stringify({ imageData }),
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                    });
+                                    if (!sendImg.ok) {
+                                        console.log("erro ao enviar a imagem. Status:", sendImg.status);
+                                        throw new Error("Erro ao enviar a imagem");
+                                    }
+                                    const responseImg = await sendImg.json();
+                                    setGeneratedQrCode(responseImg.imgQrCode);
+                                    setLoadingCamera(false);
+                                } catch (e) {
+                                    console.log(e);
+                                    setLoadingCamera(false);
                                 }
-                                const responseImg = await sendImg.json();
-                                setGeneratedQrCode(responseImg.imgQrCode);
-                                setLoadingCamera(false);
-                            } catch (e) {
-                                console.log(e);
-                                setLoadingCamera(false);
-                            }
-                        }}
-                        onFinish={async () => {
-                            setIsModalOpen(true);
-                            setIsLoadingCheckout(true)
-                            await new Promise(resolve => setTimeout(resolve, 5000));
-                            setIsLoadingCheckout(false)
-                            setIsModalOpen(false);
-                            router.push('/checkout');
-                        }}
-                        isLoading={isLoadingCheckout}
-                        imgQrCode={generatedQrCode}
-                    />
-                    <Modal
-                        visible={isModalOpen}
-                        title="Obrigado!"
-                        description="Loren ipso loren ipsum loren ipso loren ispsu"
-                    />
+                            }}
+                            onFinish={async () => {
+                                setIsLoadingCheckout(true);
+                                setIsModalOpen(true);
+                                await new Promise(resolve => setTimeout(resolve, 5000));
+                                setIsLoadingCheckout(false);
+                                setIsModalOpen(false);
+                                router.push('/checkout');
+                            }}
+                            isLoading={isLoadingCheckout}
+                            imgQrCode={generatedQrCode}
+                        />
+                        <Modal
+                            visible={isModalOpen}
+                            title="Obrigado!"
+                            description="Lorem ipsum dolor sit amet consectetur"
+                        />
+                    </div>
+                )}
+            </main>
+
+            {!showCountDown && !showImageTaken && (
+                <div className={styles.inAppFooter}>
+                    <div className={cameraStyles.cameraControls}>
+                        <button
+                            onClick={handleStartCaptureProcess}
+                            className={cameraStyles.cameraButton}
+                        />
+                    </div>
                 </div>
             )}
-
         </div>
     );
 }

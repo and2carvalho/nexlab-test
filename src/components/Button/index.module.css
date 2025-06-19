@@ -1,19 +1,21 @@
 .buttonContainer {
-    margin-top: 1rem;
     display: flex;
     justify-content: center;
     width: 100%;
+    box-sizing: border-box;
 }
 
-.button { 
-    min-width: 380px;
-    width: 100%;
+.button {
+    width: calc(100vw - 40px);
+    max-width: 380px;
     height: 45px;
     border-radius: 8px;
     font-size: 1.2rem;
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
 .button:disabled {
@@ -21,7 +23,7 @@
     cursor: not-allowed;
 }
 
-.smallButton { 
+.smallButton {
     width: fit-content;
     padding: 10px 20px;
     height: 45px;
@@ -30,6 +32,8 @@
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    white-space: nowrap;
+    box-sizing: border-box;
 }
 
 .mainButton {
@@ -38,8 +42,41 @@
     border: none;
 }
 
+.mainButton:hover:not(:disabled) {
+    background-color: var(--button-primary-hover);
+}
+
 .goshtButton {
     background-color: transparent;
     color: #555555;
     border: 3px solid #555555;
+}
+
+.goshtButton:hover:not(:disabled) {
+    background-color: var(--button-secondary-hover);
+}
+
+@media (max-width: 768px) {
+    .button {
+        font-size: 1.1rem;
+        height: 42px;
+        width: calc(100vw - 2px);
+    }
+    .smallButton {
+        font-size: 1.1rem;
+        height: 42px;
+        padding: 8px 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .button {
+        font-size: 1rem;
+        height: 40px;
+    }
+    .smallButton {
+        font-size: 1rem;
+        height: 40px;
+        padding: 6px 15px;
+    }
 }
