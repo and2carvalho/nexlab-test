@@ -1,4 +1,3 @@
-// page.js
 import Image from "next/image";
 import styles from "@/app/page.module.css";
 import MainButton from "@/components/Button";

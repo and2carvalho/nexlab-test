@@ -83,6 +83,38 @@ export default function Checkin() {
         }
     };
 
+    const handleConfirm = async () => {
+        setLoadingCamera(true);
+        try {
+            const sendImg = await fetch('/api/upload', {
+                method: 'POST',
+                body: JSON.stringify({ imageData }),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!sendImg.ok) {
+                console.log("erro ao enviar a imagem. Status:", sendImg.status);
+                throw new Error("Erro ao enviar a imagem");
+            }
+            const responseImg = await sendImg.json();
+            setGeneratedQrCode(responseImg.imgQrCode);
+            setLoadingCamera(false);
+        } catch (e) {
+            console.log(e);
+            setLoadingCamera(false);
+        }
+    }
+
+    const handleFinish = async () => {
+        setIsLoadingCheckout(true);
+        setIsModalOpen(true);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        setIsLoadingCheckout(false);
+        setIsModalOpen(false);
+        router.push('/checkout');
+    }
+
     if (loadingCamera) {
         return (
             <div className={styles.page}>
@@ -98,11 +130,19 @@ export default function Checkin() {
 
             <main className={styles.main}>
 
-                {!showImageTaken && <Camera ref={cameraRef} onCapture={handleCapturedImage} />}
+                {!showImageTaken && (
+                    <Camera ref={cameraRef} onCapture={handleCapturedImage} />
+                )}
 
                 {showCountDown && (
                     <div className={styles.overlay}>
                         <p className={styles.countdownText}>{countDown}</p>
+                        <div className={cameraStyles.cameraControls}>
+                            <button
+                                onClick={handleStartCaptureProcess}
+                                className={cameraStyles.cameraButton}
+                            />
+                        </div>
                     </div>
                 )}
 
@@ -111,36 +151,8 @@ export default function Checkin() {
                         <Card
                             imageData={imageData}
                             onCancel={() => initializeApp()}
-                            onConfirm={async () => {
-                                setLoadingCamera(true);
-                                try {
-                                    const sendImg = await fetch('/api/upload', {
-                                        method: 'POST',
-                                        body: JSON.stringify({ imageData }),
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                        },
-                                    });
-                                    if (!sendImg.ok) {
-                                        console.log("erro ao enviar a imagem. Status:", sendImg.status);
-                                        throw new Error("Erro ao enviar a imagem");
-                                    }
-                                    const responseImg = await sendImg.json();
-                                    setGeneratedQrCode(responseImg.imgQrCode);
-                                    setLoadingCamera(false);
-                                } catch (e) {
-                                    console.log(e);
-                                    setLoadingCamera(false);
-                                }
-                            }}
-                            onFinish={async () => {
-                                setIsLoadingCheckout(true);
-                                setIsModalOpen(true);
-                                await new Promise(resolve => setTimeout(resolve, 5000));
-                                setIsLoadingCheckout(false);
-                                setIsModalOpen(false);
-                                router.push('/checkout');
-                            }}
+                            onConfirm={handleConfirm}
+                            onFinish={handleFinish}
                             isLoading={isLoadingCheckout}
                             imgQrCode={generatedQrCode}
                         />
@@ -154,13 +166,11 @@ export default function Checkin() {
             </main>
 
             {!showCountDown && !showImageTaken && (
-                <div className={styles.inAppFooter}>
-                    <div className={cameraStyles.cameraControls}>
-                        <button
-                            onClick={handleStartCaptureProcess}
-                            className={cameraStyles.cameraButton}
-                        />
-                    </div>
+                <div className={cameraStyles.cameraControls}>
+                    <button
+                        onClick={handleStartCaptureProcess}
+                        className={cameraStyles.cameraButton}
+                    />
                 </div>
             )}
         </div>
