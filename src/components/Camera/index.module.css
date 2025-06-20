@@ -34,6 +34,10 @@
 }
 
 .cameraControls {
+    position: absolute;
+    bottom: 12%;
+    left: 0;
+    right: 0;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -86,6 +90,10 @@
         width: 70px;
         height: 70px;
         border-width: 5px;
+    }
+
+    .cameraControls {
+        bottom: 6%;
     }
 }
 

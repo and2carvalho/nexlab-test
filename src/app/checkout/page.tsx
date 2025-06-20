@@ -18,8 +18,8 @@ export default function Checkout() {
     // caso o usuário não retorne
     useEffect(() => {
         timeoutIdRef.current = setTimeout(() => {
-            setGeneratedQrCode(null)
             router.push("/")
+            setGeneratedQrCode(null)
         }, 8000)
 
         return () => {
@@ -39,24 +39,12 @@ export default function Checkout() {
             >
                 <div className={styles.container} >
                     <h2>Obrigado!</h2>
-                    <p
-                        style={{
-                            paddingInline: 20,
-                            textAlign: 'center',
-                            marginTop: 10,
-                            maxWidth: '280px'
-                        }}
-                    >
+                    <p className={styles.checkoutDescription}>
                         Lorem ipsum lorem ipsum lorem ipsum ipsum loren
                     </p>
-                    <div style={{
-                        borderRadius: 10,
-                        padding: 7,
-                        marginTop: 40,
-                        border: '3px solid rgb(var(--gray-rgb))',
-                    }}>
+                    <div className={styles.checkoutQrCodeWrapper}>
                         <Image
-                            src={generatedQrCode || "/placeholder-qr.png"}
+                            src={generatedQrCode || ""}
                             height={180}
                             width={180}
                             alt='img-qr-code'
